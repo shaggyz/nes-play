@@ -37,6 +37,9 @@ int read_rom_file(char* rom_name) {
 	size_t len = 0;
 	ssize_t read;
 
+    /**
+     * USE THE CODE IN test.c FOR A PROPER BINARY READER
+     **/
     while ((read = getline(&line, &len, rom_file)) != -1) {
 
 		for (int i = 0; i < strlen(line); i++){

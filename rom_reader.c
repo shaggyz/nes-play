@@ -1,14 +1,44 @@
 #include "stdio.h"
 #include "string.h"
 
+/**
+ * ----------------------------------------------------------------------------
+ * Simple NES cartridge ROM reader.
+ * ----------------------------------------------------------------------------
+ * Just for fun =). Author: Nicolas Daniel Palumbo <n@xinax.net>
+ *
+ * Contains utility functions to read binary data from iNes ROM files.
+ * Nes 2.0 is not supported.
+ **/
+
 #define ROM_LOADED 0
-#define ROM_FILE_ERROR 1;
+#define ROM_FILE_ERROR 1
+#define DEBUG_BUFSZ 16
 
 // ROMS dir.
 static const char ROM_DIR[] = "./roms/";
 
 // Default ROM files extension.
 static const char ROM_EXT[] = ".nes";
+
+/**
+ * Dumps the ROM data to STDOUT
+ **/
+void dump_rom_file(FILE* rom_file) {
+    unsigned char buffer[DEBUG_BUFSZ] = {0};
+
+    size_t rbtyes = 0;
+    size_t i, rbytes_sz = sizeof buffer;
+
+    while ((rbtyes = fread(buffer, sizeof *buffer, rbytes_sz, rom_file)) == rbytes_sz) {
+        for (i = 0; i < rbytes_sz; i++) {
+            printf("%02x ", buffer[i]);
+        }
+        putchar('\n');
+    }
+    // A final iteration over rbytes can be added for 
+    // remaining bytes outside the buffer (< 16);
+}
 
 /**
  * Reads a NES rom file, from roms folder. 
@@ -30,32 +60,7 @@ int read_rom_file(char* rom_name) {
         return ROM_FILE_ERROR;
     }
 
-	// Checking hex dump with: xxd roms/super_mario_bros.nes | head
-    printf("----------------------------------------------\n");
-
-	char* line = NULL;
-	size_t len = 0;
-	ssize_t read;
-
-    /**
-     * USE THE CODE IN test.c FOR A PROPER BINARY READER
-     **/
-    while ((read = getline(&line, &len, rom_file)) != -1) {
-
-		for (int i = 0; i < strlen(line); i++){
-			unsigned char code = line[i];
-			if (code < 16) {
-				printf("0%x ", code);
-			} else {
-				printf("%x ", code);
-			}
-		}
-
-		printf("\n------\n");
-
-    }
-
-    printf("\n----------------------------------------------\n");
+    dump_rom_file(rom_file);
 
     if (rom_file != NULL) {
         printf("Closing ROM file\n");

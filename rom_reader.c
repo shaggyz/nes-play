@@ -62,6 +62,19 @@ char* hex_to_bin(unsigned char byte) {
     return ret;
 }
 
+void parse_flag_6(unsigned char flag6) {
+    printf("0x%02x\n", flag6); 
+    printf("%02d\n", flag6); 
+    printf("%s\n", hex_to_bin(flag6));
+
+	if (flag6 & (1<<0)) {
+		// Mirroring: 0: horizontal (vertical arrangement) (CIRAM A10 = PPU A11)
+		printf("Mirrorring vertical arrangement.");	
+	} else {
+		printf("Mirrorring vertical arrangement.");	
+	}
+}
+
 /**
  * Dumps the 16 byte ROM header.
  **/
@@ -86,16 +99,17 @@ bool dump_header(unsigned char header[]) {
 
     // Flag bank #6
     unsigned char flag_6 = header[HDR_FLAGS_6];
+    parse_flag_6(flag_6);
 
     // Some display
     printf("\n---------------------------------------------------------------------------\n");
     printf("PRG ROM size: %d (16KB blocks) %dKB in total.\n", prg_rom_blocks, prg_rom_size); 
     printf("CHR ROM size: %d (8KB blocks) %dKB in total.\n", chr_rom_blocks, chr_rom_size); 
     printf("FLAG BANK #6: 0x%02x (%s)", flag_6, hex_to_bin(flag_6));
-    printf("\n---------------------------------------------------------------------------\n");
+    printf("\n---------------------------------------------------------------------------\n\n");
 
     for (char i = 0; i < DEBUG_BUFSZ; i++) {
-        printf("Header byte %02d with value: %02x (%c)\n", i, header[i], header[i]);
+        //printf("Header byte %02d with value: %02x (%c)\n", i, header[i], header[i]);
     }
 
     return true;

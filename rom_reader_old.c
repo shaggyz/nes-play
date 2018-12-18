@@ -190,10 +190,11 @@ int dump_rom_file(FILE* rom_file) {
         putchar('\n');
         
         block_c++;
-        return ROM_READ;
+
     }
     // A final iteration over rbytes can be added for 
     // remaining bytes outside the buffer (< 16);
+    return ROM_READ;
 }
 
 /**

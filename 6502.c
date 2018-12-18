@@ -1,5 +1,6 @@
 #include <stdio.h>
-#include "rom_reader.c"
+
+#include "rom_reader_old.c"
 
 // Processor registers
 char X = 0;

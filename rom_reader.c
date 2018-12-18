@@ -37,6 +37,8 @@
 #define PRG_ROM_BLOCK_SIZE 16
 #define CHR_ROM_BLOCK_SIZE 8
 
+#define HI_NIBBLE(b) (((b) >> 4) & 0x0F)
+#define LO_NIBBLE(b) ((b) & 0x0F)
 
 // ROM header token.
 static const char HEADER_TOKEN[] = {0x4e, 0x45, 0x53, 0x1a};
@@ -48,30 +50,76 @@ static const char ROM_DIR[] = "./roms/";
 static const char ROM_EXT[] = ".nes";
 
 /**
+ * NES Header struct: A high level struct with ROM metadata.
+ */
+typedef struct NES_HEADER {
+	unsigned char raw[16];
+	bool f6_horizontal_mirroring;
+	bool f6_vertical_mirroring;
+	bool f6_battery_prg_ram;
+	bool f6_trainer_incuded;
+	bool f6_ignore_mirror_control;
+	unsigned char mapper;
+} NESHeader;
+
+/**
+ * NES Rom struct: It contains the ROM code
+ */
+typedef struct NES_ROM {
+	NESHeader header;
+	unsigned char* prg_rom;
+	unsigned char* chr_rom;
+} NESRom;
+
+/**
  * Creates a binary string representation of a byte.
  **/
 char* hex_to_bin(unsigned char byte) {
     char* ret = malloc(sizeof byte);
 	unsigned char bit, index = 0; 
-
     for (bit = 1 << 7; bit > 0; bit = bit / 2) {
         ret[index] = (byte & bit) ? '1' : '0';
         index++;
 	}
-
     return ret;
 }
 
+/**
+ * Some tests. Deprecated.
+ */ 
 void parse_flag_6(unsigned char flag6) {
-    printf("0x%02x\n", flag6); 
-    printf("%02d\n", flag6); 
-    printf("%s\n", hex_to_bin(flag6));
+    printf("Parsing flag 6 with value: %s\n", hex_to_bin(flag6));
 
 	if (flag6 & (1<<0)) {
-		// Mirroring: 0: horizontal (vertical arrangement) (CIRAM A10 = PPU A11)
-		printf("Mirrorring vertical arrangement.");	
+		printf("- horizontal (vertical arrangement) (CIRAM A10 = PPU A11)\n");	
 	} else {
-		printf("Mirrorring vertical arrangement.");	
+		printf("- vertical (horizontal arrangement) (CIRAM A10 = PPU A10)\n");	
+	}
+
+	if (flag6 & (1<<1)) {
+		printf("- Cartridge contains battery-backed PRG RAM ($6000-7FFF) or other persistent memory\n");	
+	} else {
+		printf("- No battery backed PRG RAM detected.\n");	
+	}
+
+	if (flag6 & (1<<2)) {
+		printf("512-byte trainer at $7000-$71FF (stored before PRG data)");	
+	} else {
+		printf("- No trainer detected.\n");	
+	}
+
+	if (flag6 & (1<<3)) {
+		printf("Ignore mirroring control or above mirroring bit; instead provide four-screen VRAM\n");	
+	} 
+
+	// Extracting 4 bits from 4th position.
+	// Lower nibble for mapper numbers: https://en.m.wikipedia.org/wiki/Nibble
+	unsigned char mapper = (((1 << 4) - 1) & (flag6 >> (4 - 1)));
+
+	if (mapper == 0x00) {
+		printf("- Using NROM with first generic mapper.\n");
+	} else {
+		printf("Unknown mapper.\n");
 	}
 }
 

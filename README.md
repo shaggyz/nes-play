@@ -2,6 +2,8 @@
 
 Some experiments about 6502 CPU and NES technology. Just for fun.
 
+Tools used: `debian, vim, bash, i3-gaps, xterm`
+
 ## Implemented components
 
 - ROM Cartridge reader emulator. - WIP
@@ -28,4 +30,5 @@ Yo will need a NES rom called `super_mario_bros.nes` in `./roms` dir. ;-)
 - NES ROM header specs: http://nesdev.com/neshdr20.txt
 - NES System: http://fms.komkon.org/EMUL8/NES.html
 - Slow video series about python implementation: https://www.youtube.com/watch?v=cDINZlKoGcY
+- ROM mappers: http://tuxnes.sourceforge.net/nesmapper.txt
 

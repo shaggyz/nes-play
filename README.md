@@ -31,4 +31,5 @@ Yo will need a NES rom called `super_mario_bros.nes` in `./roms` dir. ;-)
 - NES System: http://fms.komkon.org/EMUL8/NES.html
 - Slow video series about python implementation: https://www.youtube.com/watch?v=cDINZlKoGcY
 - ROM mappers: http://tuxnes.sourceforge.net/nesmapper.txt
-
+- Incredible article about NES console: http://nesdev.com/NESDoc.pdf
+- 

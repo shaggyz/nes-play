@@ -1,8 +1,7 @@
 CC=gcc
-CFLAGS=-I.
 
 nesplay: main.c romreader.c
-	$(CC) -o nesplay main.c romreader.c
+	$(CC) -I. -g -O0 -o nesplay main.c romreader.c 
 
 clean:
 	-rm nesplay

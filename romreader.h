@@ -1,17 +1,20 @@
 /*
- * nesrom.h
+ * romreader.h
  */
 
-#ifndef INCLUDE_NESROM_H_
-#define INCLUDE_NESROM_H_
+#ifndef ROMREADER_H_
+#define ROMREADER_H_
+
+#include <stdbool.h>
 
 /*
  * ROM reader response codes
  */
-#define ROM_LOADED 0
-#define ROM_READ 0
-#define ROM_FILE_ERROR 1
-#define ROM_HEADER_ERROR 1
+#define ROM_UNLOADED 0
+#define ROM_LOADED 1
+#define ROM_FILE_ERROR 2
+#define ROM_HEADER_ERROR 3
+#define ROM_HEADER_LOADED 4
 
 /*
  * ROM header bytes (16, but 11-15 are not used)
@@ -31,7 +34,7 @@
 /*
  * Internal buffers and block definitions
  */
-#define DEBUG_BUFSZ 16
+#define PARSER_BLK_SIZE 16
 #define PRG_ROM_BLOCK_SIZE 16
 #define CHR_ROM_BLOCK_SIZE 8
 
@@ -45,29 +48,53 @@
  * NES Header struct: A high level struct with ROM metadata.
  */
 typedef struct NES_HEADER {
-	unsigned char raw[16];
-	bool f6_horizontal_mirroring;
+	// 16 KB block size
+	unsigned char prg_rom_blocks;
+	// 8 KB block size
+	unsigned char chr_rom_blocks;
+	// FLAG 6
 	bool f6_vertical_mirroring;
 	bool f6_battery_prg_ram;
 	bool f6_trainer_incuded;
 	bool f6_ignore_mirror_control;
-	unsigned char mapper;
+	unsigned char f6_mapper;
+	// General
+	unsigned char status;
+	unsigned char* raw;
 } NESHeader;
 
 /*
  * NES Rom struct: It contains the ROM code
  */
 typedef struct NES_ROM {
-	NESHeader header;
 	unsigned char* prg_rom;
 	unsigned char* chr_rom;
+	NESHeader header;
 } NESRom;
 
-/* -----------------------------------------------------------
- * Configuration options, for now here is the place for that.
- * ----------------------------------------------------------- */
-
-// ROM header token.
+/*
+ * ROM header token.
+ */
 static const char HEADER_TOKEN[] = {0x4e, 0x45, 0x53, 0x1a};
 
-#endif /* INCLUDE_NESROM_H_ */
+/*
+ * Loads a NES ROM FILE.
+ */
+NESRom load_rom(char* rom_path);
+
+/*
+ * Parses the ROM contents.
+ */
+NESRom parse_rom(FILE* rom_file);
+
+/*
+ * Parses the NES file header.
+ */
+NESHeader parse_header(unsigned char* raw_header);
+
+/*
+ * Creates a binary string representation of a byte.
+ */
+char* hex_to_bin(unsigned char byte);
+
+#endif /* ROMREADER_H_ */

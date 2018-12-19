@@ -1,11 +1,11 @@
-#6502: 6502.c rom_reader.c
-#	gcc -o 6502 6502.c
+CC=gcc
+CFLAGS=-I.
 
-6502: main.c
-	gcc -o nesplay main.c
+nesplay: main.c romreader.c
+	$(CC) -o nesplay main.c romreader.c
 
 clean:
-	-rm 6502
-	
+	-rm nesplay
+
 all:
-	make 6502
+	make nesplay

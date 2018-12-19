@@ -1,6 +1,5 @@
-6502
-nes
-roms/*
-.cproject
-.project
 .settings
+.project
+.cproject
+nesplay
+roms/*

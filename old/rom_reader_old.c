@@ -33,7 +33,7 @@
 #define HDR_FLAGS_10 10
 
 // Internal buffers and blocks
-#define DEBUG_BUFSZ 16
+#define PARSER_BLK_SIZE 16
 #define PRG_ROM_BLOCK_SIZE 16
 #define CHR_ROM_BLOCK_SIZE 8
 
@@ -91,9 +91,9 @@ void parse_flag_6(unsigned char flag6) {
     printf("Parsing flag 6 with value: %s\n", hex_to_bin(flag6));
 
 	if (flag6 & (1<<0)) {
-		printf("- horizontal (vertical arrangement) (CIRAM A10 = PPU A11)\n");	
+		printf("1: horizontal (vertical arrangement) (CIRAM A10 = PPU A11)\n");
 	} else {
-		printf("- vertical (horizontal arrangement) (CIRAM A10 = PPU A10)\n");	
+		printf("0: vertical (horizontal arrangement) (CIRAM A10 = PPU A10)\n");
 	}
 
 	if (flag6 & (1<<1)) {
@@ -156,7 +156,7 @@ bool dump_header(unsigned char header[]) {
     printf("FLAG BANK #6: 0x%02x (%s)", flag_6, hex_to_bin(flag_6));
     printf("\n---------------------------------------------------------------------------\n\n");
 
-    for (char i = 0; i < DEBUG_BUFSZ; i++) {
+    for (char i = 0; i < PARSER_BLK_SIZE; i++) {
         //printf("Header byte %02d with value: %02x (%c)\n", i, header[i], header[i]);
     }
 
@@ -167,7 +167,8 @@ bool dump_header(unsigned char header[]) {
  * Dumps the ROM data to STDOUT
  **/
 int dump_rom_file(FILE* rom_file) {
-    unsigned char buffer[DEBUG_BUFSZ] = {0};
+
+    unsigned char buffer[PARSER_BLK_SIZE] = {0};
 
     size_t rbtyes, rheader = 0;
     size_t i, rbytes_sz = sizeof buffer;
@@ -195,6 +196,7 @@ int dump_rom_file(FILE* rom_file) {
     // A final iteration over rbytes can be added for 
     // remaining bytes outside the buffer (< 16);
     return ROM_READ;
+
 }
 
 /**
@@ -207,7 +209,7 @@ int read_rom_file(char* rom_name) {
     strcat(rom_path, rom_name);
     strcat(rom_path, ROM_EXT);
 
-    printf("Reading rom: %s \n", rom_path);
+    printf("Reading ROM file: %s...\n", rom_path);
     
     FILE* rom_file;
     rom_file = fopen(rom_path, "rb");

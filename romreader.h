@@ -15,6 +15,7 @@
 #define ROM_FILE_ERROR 2
 #define ROM_HEADER_ERROR 3
 #define ROM_HEADER_LOADED 4
+#define ROM_NOT_SUPPORTED 5
 
 /*
  * ROM header bytes (16, but 11-15 are not used)
@@ -37,6 +38,7 @@
 #define PARSER_BLK_SIZE 16
 #define PRG_ROM_BLOCK_SIZE 16
 #define CHR_ROM_BLOCK_SIZE 8
+#define HDR_BLOCK_SIZE 16
 
 /*
  * Nibble macros (4bit values H/L)
@@ -114,5 +116,7 @@ void debug_rom(NESRom rom);
  * Creates a binary string representation of a byte.
  */
 char* hex_to_bin(unsigned char byte);
+
+unsigned char* read_rom_bytes(unsigned char* rom, size_t r_bytes, size_t pos);
 
 #endif /* ROMREADER_H_ */

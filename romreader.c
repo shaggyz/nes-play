@@ -67,6 +67,19 @@ NESHeader parse_header(unsigned char* raw_header) {
 
 }
 
+unsigned char* read_rom_bytes(unsigned char* rom, size_t r_bytes, size_t pos) {
+
+	unsigned char* buffer = malloc(r_bytes + 1);
+	size_t rom_size = strlen(rom);
+
+	if (rom_size < (r_bytes - pos)) {
+		fprintf(stderr, "Cannot read %d bytes. ROM length is: %d", r_bytes, rom_size);
+		return NULL;
+	}
+
+	return buffer;
+}
+
 /*
  * Parses the ROM file contents.
  */
@@ -74,36 +87,65 @@ NESRom parse_rom(FILE* rom_file) {
 
 	NESRom rom;
 
-    unsigned char buffer[PARSER_BLK_SIZE] = {0};
-    unsigned int block_c = 0;
-    size_t rbtyes, rheader = 0;
-    size_t i, rbytes_sz = sizeof buffer;
+	// Read entire file size
+	fseek(rom_file, 0, SEEK_END);
+	size_t f_size = ftell(rom_file);
+	fseek(rom_file, 0, SEEK_SET);
 
-    // Read the entire file in 16-byte blocks.
-    while ((rbtyes = fread(buffer, sizeof *buffer, rbytes_sz, rom_file)) == rbytes_sz) {
+	// Read entire buffer
+	unsigned char buffer[f_size + 1];
+	fread(buffer, f_size, 1, rom_file);
+	buffer[f_size] = 0;
 
-    	if (0 == block_c) {
-    		rom.header = parse_header(buffer);
-        	// Header error.
-    		if (rom.header.status != ROM_HEADER_LOADED) {
-    			printf("HEADER ERROR\n");
-    			return rom;
-    		}
-    	}
+	// Read header
+	unsigned char header[HDR_BLOCK_SIZE + 1];
+	memcpy(header, &buffer, HDR_BLOCK_SIZE);
+	header[16] = '\0';
 
-    	printf("%02d: ", block_c);
-		for (i = 0; i < rbytes_sz; i++) {
-			printf("%02x ", buffer[i]);
-		}
-		putchar('\n');
+	rom.header = parse_header(header);
+	size_t carry = HDR_BLOCK_SIZE;
 
-    	block_c++;
+	// Header error.
+	if (rom.header.status != ROM_HEADER_LOADED) {
+		return rom;
+	}
 
-    	// TODO: Remove limiter.
-    	if (11 == block_c) {
-    		break;
-    	}
-    }
+	// Trainer
+	if (rom.header.f6_trainer_incuded) {
+		// 512KB trainer
+		carry += 512;
+		printf("ERROR: Trainer not implemented!!!");
+		return rom;
+	}
+
+	// Read PRG ROM bank.
+	size_t prg_rom_size = (PRG_ROM_BLOCK_SIZE * 1024) * rom.header.prg_rom_blocks;
+	unsigned char prg_rom[prg_rom_size + 1];
+	memcpy(prg_rom, &buffer[carry], prg_rom_size);
+	prg_rom[prg_rom_size] = '\0';
+
+	rom.prg_rom = prg_rom;
+	carry += prg_rom_size;
+
+	// Read CHR ROM bank
+	size_t chr_rom_size = (CHR_ROM_BLOCK_SIZE * 1024) * rom.header.chr_rom_blocks;
+	unsigned char chr_rom[chr_rom_size + 1];
+	memcpy(chr_rom, &buffer[carry], chr_rom_size);
+	chr_rom[chr_rom_size] = '\0';
+
+	rom.chr_rom = chr_rom;
+	carry += chr_rom_size;
+
+	// Final checks
+	if (carry != f_size) {
+		fprintf(stderr, "Extra/Missing data for this ROM\n");
+		fprintf(stderr, "ROM size: %d bytes.", f_size);
+		fprintf(stderr, "Bytes read: %d bytes.", carry);
+		rom.header.status = ROM_NOT_SUPPORTED;
+		return rom;
+	}
+
+	printf("Loaded %dKB (%d bytes) of ROM data.\n", carry / 1024, carry);
 
     // A final iteration over rbytes can be added for
 	// remaining bytes outside the buffer (< 16);
@@ -132,8 +174,8 @@ NESRom load_rom(char* rom_path) {
     }
 
     if (rom_file != NULL) {
-        printf("Closing ROM file\n");
         fclose(rom_file);
+        printf("ROM file closed.\n");
     }
 
 	return rom;

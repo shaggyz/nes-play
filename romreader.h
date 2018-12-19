@@ -33,10 +33,18 @@
 #define HDR_FLAGS_10 10
 
 /*
+ * TV systems
+ */
+#define TV_SYSTEM_NTSC 0
+#define TV_SYSTEM_DUAL 1
+#define TV_SYSTEM_PAL 2
+
+/*
  * Internal buffers and block definitions
  */
 #define PARSER_BLK_SIZE 16
 #define PRG_ROM_BLOCK_SIZE 16
+#define PRG_RAM_BLOCK_SIZE 8
 #define CHR_ROM_BLOCK_SIZE 8
 #define HDR_BLOCK_SIZE 16
 
@@ -50,32 +58,35 @@
  * NES Header struct: A high level struct with ROM metadata.
  */
 typedef struct NES_HEADER {
-	// 16 KB block size
-	unsigned char prg_rom_blocks;
-	// 8 KB block size
-	unsigned char chr_rom_blocks;
-	// 8 KB block size: Value 0 infers 8 KB for compatibility.
-	unsigned char prg_ram_blocks;
-	// FLAG 6
+	// --- FLAG 6 ---
+	unsigned char f6_raw;
 	bool f6_vertical_mirroring;
 	bool f6_battery_prg_ram;
 	bool f6_trainer_incuded;
 	bool f6_ignore_mirror_control;
-	// FLAG 7
+	// --- FLAG 7 ---
+	unsigned char f7_raw;
 	bool f7_unisystem;
 	bool f7_playchoice_10;
 	unsigned char f7_nes20;
-	// Standard NTSC/PAL flag. Not used.
-	bool f9_std_pal;
-	// FLAG 10: This byte is not part of the official specification, and relatively few emulators honor it.
-	unsigned char f10_tv_system;
-	// PRG RAM ($6000-$7FFF) (0: present; 1: not present)
-	bool f10_prg_ram;
+	// --- FLAG 9 ---
+	unsigned char f9_raw;
+	bool f9_std_pal; 				// Standard NTSC/PAL flag. Not used.
+	// --- FLAG 10 ---
+	unsigned char f10_raw;
+	unsigned char f10_tv_system; 	// relatively few emulators honor it
+	bool f10_prg_ram; 				// PRG RAM ($6000-$7FFF) (0: present; 1: not present)
 	bool f10_board_conflict;
-	// General
+	// --- General ---
 	unsigned char status;
 	unsigned char raw[16];
 	unsigned char mapper;
+	unsigned char prg_rom_blocks; 	// Number of 16 KB PRG blocks.
+	size_t prg_rom_size; 			// Size in bytes of PRG ROM.
+	unsigned char chr_rom_blocks; 	// Number of 8 KB CHR blocks.
+	size_t chr_rom_size; 			// Size in bytes of CHR ROM.
+	unsigned char prg_ram_blocks; 	// 8 KB block size: Value 0 infers 8 KB for compatibility.
+	size_t prg_ram_size; 			// Size in bytes of PRG RAM.
 } NESHeader;
 
 /*
@@ -107,16 +118,9 @@ NESRom parse_rom(FILE* rom_file);
  */
 NESHeader parse_header(unsigned char* raw_header);
 
-/**
- * Debugs a NES ROM on stdout.
- */
-void debug_rom(NESRom rom);
-
 /*
  * Creates a binary string representation of a byte.
  */
 char* hex_to_bin(unsigned char byte);
-
-unsigned char* read_rom_bytes(unsigned char* rom, size_t r_bytes, size_t pos);
 
 #endif /* ROMREADER_H_ */

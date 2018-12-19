@@ -10,6 +10,9 @@
 
 #include "romreader.h"
 
+// How many 16-byte banks dump to stdout.
+#define DEBUG_PRG_BANKS 10
+
 /*
  * Debugs a ROM to stdout
  */
@@ -29,5 +32,10 @@ void debug_flags_7(NESHeader header);
  * Debugs the flags 10 values.
  */
 void debug_flags_10(NESHeader header);
+
+/**
+ * Debugs a fixed size byte stream on stdout.
+ */
+void debug_byte_stream(unsigned char* stream, size_t block_size, int amount, size_t offset);
 
 #endif /* DEBUG_H_ */

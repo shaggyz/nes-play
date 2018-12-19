@@ -7,8 +7,10 @@
  */
 void debug_rom(NESRom rom) {
 
-	printf("\nROM debug: \n");
+	printf("\nROM Header debug: \n");
 	printf("---------------------------------------------------------------------------\n");
+
+	debug_byte_stream(rom.header.raw, HDR_BLOCK_SIZE, 1, 0);
 
 	printf("PRG ROM size: %dKB (%d bytes in %d 16KB blocks)\n",
 			rom.header.prg_rom_size / 1024,
@@ -54,7 +56,13 @@ void debug_rom(NESRom rom) {
 
 	debug_flags_10(rom.header);
 
-	printf("---------------------------------------------------------------------------\n\n");
+	printf("\nPRG data debug: \n");
+	printf("---------------------------------------------------------------------------\n");
+	debug_byte_stream(rom.prg_rom, PRG_ROM_BLOCK_SIZE, 10, 0);
+
+	printf("\nCHR data debug: \n");
+	printf("---------------------------------------------------------------------------\n");
+	debug_byte_stream(rom.chr_rom, CHR_ROM_BLOCK_SIZE, 10, 0);
 
 }
 
@@ -126,3 +134,21 @@ void debug_flags_10(NESHeader header) {
 			header.f10_board_conflict ? "Yes" : "No");
 
 }
+
+/**
+ * Debugs a fixed-size byte stream in stdout.
+ */
+void debug_byte_stream(unsigned char* stream, size_t block_size, int num_blocks, size_t offset) {
+
+	for (int block = 0 + offset; block < num_blocks + offset; block++) {
+		printf("%02d: ", block);
+		for (size_t i = 0; i < block_size; i++) {
+			printf("%02x ", stream[i + (block_size - 1) * block]);
+		}
+		printf("\n");
+	}
+
+	printf("\n");
+
+}
+

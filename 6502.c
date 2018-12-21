@@ -8,6 +8,7 @@
 
 #include "romreader.h"
 #include "6502.h"
+#include "mem.h"
 
 // ---------------------
 // --- CPU Internals ---
@@ -47,7 +48,7 @@ void _clear_flag(unsigned char flag) {
 // --- I/O ---
 // -----------
 
-NESRom _loaded_rom;
+NESRom _bus_rom;
 
 // --------------------
 // --- CPU OP Codes ---
@@ -83,12 +84,7 @@ bool cpu_bus_write(unsigned short address, unsigned char byte) {
 
     if (address >= 0x0000 && address <= 0x1fff) {
         // RAM (2KB, with mirror 8KB)
-        // $0000-$07FF: 2K CPU RAM
-        // MIRROR 1: $0800-$0FFF
-        // MIRROR 1: $1000-$17FF
-        // MIRROR 1: $1800-$1FFF
-        // With mirroring: $0000-$1FFF (8KB in total, 8191 bytes)
-        printf("RAM: Write requested at 0x%04x with 0x%02x.\n", address, byte);
+        ram_write_byte(address, byte);
     } else if (address >= 0x2000 && address <= 0x3FFF) {
         // PPU (8 bytes, with mirror 8KB)
         // Mirrors of $2000-2007 (repeats every 8 bytes) $2008-$3FFF
@@ -107,6 +103,7 @@ bool cpu_bus_write(unsigned short address, unsigned char byte) {
     }
 
     return true;
+
 }
 
 /**
@@ -118,12 +115,7 @@ unsigned char cpu_bus_read(unsigned short address) {
 
     if (address >= 0x0000 && address <= 0x1fff) {
         // RAM (2KB, with mirror 8KB)
-        // $0000-$07FF: 2K CPU RAM
-        // MIRROR 1: $0800-$0FFF
-        // MIRROR 1: $1000-$17FF
-        // MIRROR 1: $1800-$1FFF
-        // With mirroring: $0000-$1FFF (8KB in total, 8191 bytes)
-        printf("RAM: read requested for 0x%04x.\n", address);
+        _value = ram_read_byte(address);
     } else if (address >= 0x2000 && address <= 0x3FFF) {
         // PPU (8 bytes, with mirror 8KB)
         // Mirrors of $2000-2007 (repeats every 8 bytes) $2008-$3FFF
@@ -133,7 +125,7 @@ unsigned char cpu_bus_read(unsigned short address) {
         printf("APU: read requested for 0x%04x.\n", address);
     } else if (address >= 0x8000 && address <= 0xFFFF) {
         // ROM (32KB)
-        _value = _loaded_rom.prg_rom[address - 0x8000];
+        _value = _bus_rom.prg_rom[address - 0x8000];
         printf("ROM: read 0x%02x from ROM address: 0x%04x.\n", _value, address);
     } else {
         // Unimplemented memory region
@@ -141,6 +133,7 @@ unsigned char cpu_bus_read(unsigned short address) {
     }
 
     return _value;
+
 }
 
 // -----------------
@@ -168,6 +161,9 @@ void cpu_power_up() {
     // TODO: This is probably wrong.
     // TODO: This value should be taken from $FFFD (reset handler)
     WRITE_PC(0x8000);
+
+    // RAM power up
+    ram_initialize();
 
     // Frame IRQ enabled.
     cpu_bus_write(0x4017, 0x00);
@@ -200,13 +196,13 @@ void cpu_reset() {
  */
 bool cpu_process_rom(NESRom rom) {
 
-    _loaded_rom = rom;
+    _bus_rom = rom;
 
     cpu_power_up();
 
     printf("CPU: Reading %dKB (%d bytes) of PRG data.\n",
-            _loaded_rom.header.prg_rom_size / 1024,
-            _loaded_rom.header.prg_rom_size);
+            _bus_rom.header.prg_rom_size / 1024,
+            _bus_rom.header.prg_rom_size);
 
     while (running) {
 
@@ -221,8 +217,8 @@ bool cpu_process_rom(NESRom rom) {
 
         // Execute the instruction
         unsigned char parameters[2];
-        parameters[0] = _loaded_rom.prg_rom[PC + 0x01];
-        parameters[1] = _loaded_rom.prg_rom[PC + 0x02];
+        parameters[0] = _bus_rom.prg_rom[PC + 0x01];
+        parameters[1] = _bus_rom.prg_rom[PC + 0x02];
 
         // Test
         operation.op(parameters);

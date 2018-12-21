@@ -58,44 +58,44 @@
  * NES Header struct: A high level struct with ROM metadata.
  */
 typedef struct NES_HEADER {
-	// --- FLAG 6 ---
-	unsigned char f6_raw;
-	bool f6_vertical_mirroring;
-	bool f6_battery_prg_ram;
-	bool f6_trainer_incuded;
-	bool f6_ignore_mirror_control;
-	// --- FLAG 7 ---
-	unsigned char f7_raw;
-	bool f7_unisystem;
-	bool f7_playchoice_10;
-	unsigned char f7_nes20;
-	// --- FLAG 9 ---
-	unsigned char f9_raw;
-	bool f9_std_pal; 				// Standard NTSC/PAL flag. Not used.
-	// --- FLAG 10 ---
-	unsigned char f10_raw;
-	unsigned char f10_tv_system; 	// relatively few emulators honor it
-	bool f10_prg_ram; 				// PRG RAM ($6000-$7FFF) (0: present; 1: not present)
-	bool f10_board_conflict;
-	// --- General ---
-	unsigned char status;
-	unsigned char raw[16];
-	unsigned char mapper;
-	unsigned char prg_rom_blocks; 	// Number of 16 KB PRG blocks.
-	size_t prg_rom_size; 			// Size in bytes of PRG ROM.
-	unsigned char chr_rom_blocks; 	// Number of 8 KB CHR blocks.
-	size_t chr_rom_size; 			// Size in bytes of CHR ROM.
-	unsigned char prg_ram_blocks; 	// 8 KB block size: Value 0 infers 8 KB for compatibility.
-	size_t prg_ram_size; 			// Size in bytes of PRG RAM.
+    // --- FLAG 6 ---
+    unsigned char f6_raw;
+    bool f6_vertical_mirroring;
+    bool f6_battery_prg_ram;
+    bool f6_trainer_incuded;
+    bool f6_ignore_mirror_control;
+    // --- FLAG 7 ---
+    unsigned char f7_raw;
+    bool f7_unisystem;
+    bool f7_playchoice_10;
+    unsigned char f7_nes20;
+    // --- FLAG 9 ---
+    unsigned char f9_raw;
+    bool f9_std_pal; 				// Standard NTSC/PAL flag. Not used.
+    // --- FLAG 10 ---
+    unsigned char f10_raw;
+    unsigned char f10_tv_system; 	// relatively few emulators honor it
+    bool f10_prg_ram; 				// PRG RAM ($6000-$7FFF) (0: present; 1: not present)
+    bool f10_board_conflict;
+    // --- General ---
+    unsigned char status;
+    unsigned char raw[16];
+    unsigned char mapper;
+    unsigned char prg_rom_blocks; 	// Number of 16 KB PRG blocks.
+    size_t prg_rom_size; 			// Size in bytes of PRG ROM.
+    unsigned char chr_rom_blocks; 	// Number of 8 KB CHR blocks.
+    size_t chr_rom_size; 			// Size in bytes of CHR ROM.
+    unsigned char prg_ram_blocks; 	// 8 KB block size: Value 0 infers 8 KB for compatibility.
+    size_t prg_ram_size; 			// Size in bytes of PRG RAM.
 } NESHeader;
 
 /*
  * NES Rom struct: It contains the ROM code
  */
 typedef struct NES_ROM {
-	unsigned char* prg_rom;
-	unsigned char* chr_rom;
-	NESHeader header;
+    unsigned char* prg_rom;
+    unsigned char* chr_rom;
+    NESHeader header;
 } NESRom;
 
 /*

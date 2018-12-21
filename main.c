@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
     debug_rom(rom);
 
     // CPU test
-    process_rom(rom);
+    cpu_process_rom(rom);
 
     if (rom.header.status != ROM_LOADED) {
         fprintf(stderr, "ERROR: The ROM %s cannot be loaded. ROM status: %d", argv[1], rom.header.status);

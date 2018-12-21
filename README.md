@@ -96,15 +96,24 @@ CHR data debug:
 08: fc fc f8 c0 c2 67 2f 37 
 09: 37 7f 7f ff ff 07 07 0f 
 
-Bye!
 ```
 
 ## Links
+
+### NES
 
 - iNes file format: https://wiki.nesdev.com/w/index.php/INES
 - NES ROM header specs: http://nesdev.com/neshdr20.txt
 - NES System: http://fms.komkon.org/EMUL8/NES.html
 - ROM mappers: http://tuxnes.sourceforge.net/nesmapper.txt
 - Amazing general document about NES console: http://nesdev.com/NESDoc.pdf
-- 6502 CPU OpCodes: https://www.masswerk.at/6502/6502_instruction_set.html
-- 6502 Manual: http://archive.6502.org/datasheets/synertek_programming_manual.pdf
+
+### MOS 6502
+
+- OpCodes table: http://visual6502.org/wiki/index.php?title=6502_all_256_Opcodes
+- CPU OpCodes: https://www.masswerk.at/6502/6502_instruction_set.html
+- Hardware manual: http://archive.6502.org/books/mcs6500_family_hardware_manual.pdf
+- Programming Manual: http://archive.6502.org/datasheets/synertek_programming_manual.pdf
+- Arch.: http://nesdev.com/6502_cpu.txt
+- 6502 ASM interpreter online: http://skilldrick.github.io/easy6502/
+- Memory addressing modes: http://www.emulator101.com/6502-addressing-modes.html

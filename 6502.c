@@ -13,64 +13,115 @@
 // --- CPU Internals ---
 // ---------------------
 
-#define DATA_BUS_SIZE 8
-
 // CPU cycle counter. The integer limit is desired.
-unsigned int cpu_cycle = 0;
+unsigned int cpu_cycle = 0x00;
 
-// Accumulator register
+// Simulation control.
+bool running = false;
+
+// CPU registers
 unsigned char A;
+unsigned char X;
+unsigned char Y;
+
+// Program counter
+unsigned short PC = 0x00;
+
+// Pointer stack
+unsigned short PS = 0x00;
+
+// Processor status flags
+unsigned char P_FLAGS = 0x00;
+
+bool _read_flag(unsigned char flag) {
+    return P_FLAGS & (1 << flag);
+}
+void _set_flag(unsigned char flag) {
+    P_FLAGS |= (1 << flag);
+}
+void _clear_flag(unsigned char flag) {
+    P_FLAGS &= ~(1 << flag);
+}
 
 // --------------------
 // --- CPU OP Codes ---
 // --------------------
 
-#define SUM_OPCODE = 32
-
-// ------------------------
-// --- CPU Instructions ---
-// ------------------------
-
 CpuInstruction operations[256];
 
-unsigned char OP_SUM(unsigned char params[2]) {
-
-    unsigned char result = params[0] + params[1];
-    printf("Processing instruction SUM with %d + %d, result: %d.\n", params[0], params[1], result);
-    return result;
-
+// SEI
+void OP_SEI(unsigned char params[2]) {
+    _set_flag(PF_INTERRUPT_DISABLE);
 }
 
 /**
  * The operations register is populated with the implemented instructions
  */
-void map_instructions() {
+void cpu_map_instructions() {
 
-    /*CpuInstruction SUM;
-	SUM.cycles = 3;
-	SUM.param_c = 2;
-	strcpy(SUM.name, "SUM");
-	SUM.op = OP_SUM;
+    CpuInstruction SEI;
+    SEI.opcode = 0x78;
+    SEI.cycles = 0x01;
+    SEI.param_c = 0x00;
+    SEI.mem_mode = MEM_A_IMPLIED;
+	strcpy(SEI.name, "SEI");
+	SEI.op = OP_SEI;
+	operations[SEI.opcode] = SEI;
 
-	operations[0x78] = SUM;*/
+}
+
+// -----------------
+// --- CPU Logic ---
+// -----------------
+
+/**
+ * Initializes the CPU.
+ */
+void cpu_power_up() {
+
+    printf("CPU: Start up!\n");
+    // CPU Flags: NOEBDIZC
+    //            00110100
+    _set_flag(PF_INTERRUPT_DISABLE);
+    _set_flag(PF_BREAK_CMD);
+    _set_flag(PF_EXPANSION);
+
+    WRITE_A(0x00);
+    WRITE_X(0x00);
+    WRITE_Y(0x00);
+
+    WRITE_PS(0xfd);
+
+    printf("CPU: Preparing supported instructions.\n");
+    cpu_map_instructions();
+
+    running = true;
+
+}
+
+/**
+ * Resets the CPU states.
+ */
+void cpu_reset() {
+
+    printf("CPU: RESET NOT IMPLEMENTED!\n");
 
 }
 
 /**
  * Process a NES ROM.
  */
-bool process_rom(NESRom rom) {
+bool cpu_process_rom(NESRom rom) {
 
-    printf("CPU: Preparing supported instructions.\n");
-    map_instructions();
+    cpu_power_up();
 
     printf("CPU: Reading %dKB (%d bytes) of PRG data.\n",
             rom.header.prg_rom_size / 1024,
             rom.header.prg_rom_size);
 
-    for(int index = 0; index < rom.header.prg_rom_size; index++) {
+    while (running) {
 
-        unsigned char op_code = rom.prg_rom[index];
+        unsigned char op_code = rom.prg_rom[PC];
         CpuInstruction operation = operations[op_code];
 
         // Check if the instruction is registered.
@@ -81,11 +132,15 @@ bool process_rom(NESRom rom) {
 
         // Execute the instruction
         unsigned char parameters[2];
-        parameters[0] = rom.prg_rom[index + 0x01];
-        parameters[1] = rom.prg_rom[index + 0x02];
-        operation.op(parameters);
+        parameters[0] = rom.prg_rom[PC + 0x01];
+        parameters[1] = rom.prg_rom[PC + 0x02];
 
-        cpu_cycle ++;
+        // Test
+        operation.op(parameters);
+        printf("CPU: executed %s\n", operation.name);
+
+        PC += (operation.param_c + 1);
+        cpu_cycle += operation.cycles;
     }
 
     return true;

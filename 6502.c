@@ -8,7 +8,10 @@
 
 #include "romreader.h"
 #include "6502.h"
+#include "debug.h"
 #include "mem.h"
+#include "ppu.h"
+#include "apu.h"
 
 // ---------------------
 // --- CPU Internals ---
@@ -43,10 +46,6 @@ void _set_flag(unsigned char flag) {
 void _clear_flag(unsigned char flag) {
     P_FLAGS &= ~(1 << flag);
 }
-
-// -----------
-// --- I/O ---
-// -----------
 
 NESRom _bus_rom;
 
@@ -87,11 +86,10 @@ bool cpu_bus_write(unsigned short address, unsigned char byte) {
         ram_write_byte(address, byte);
     } else if (address >= 0x2000 && address <= 0x3FFF) {
         // PPU (8 bytes, with mirror 8KB)
-        // Mirrors of $2000-2007 (repeats every 8 bytes) $2008-$3FFF
-        printf("PPU: write requested at 0x%04x with 0x%02x.\n", address, byte);
+        ppu_write_byte(address, byte);
     } else if (address >= 0x4000 && address <= 0x401F) {
         // APU (32 bytes)
-        printf("APU: write requested at 0x%04x with 0x%02x.\n", address, byte);
+        apu_write_byte(address, byte);
     } else if (address >= 0x8000 && address <= 0xFFFF) {
         // ROM (32KB)
         fprintf(stderr, "IO: ERROR: Trying to write 0x%02x to a ROM address: 0x%04x.\n");
@@ -118,11 +116,10 @@ unsigned char cpu_bus_read(unsigned short address) {
         _value = ram_read_byte(address);
     } else if (address >= 0x2000 && address <= 0x3FFF) {
         // PPU (8 bytes, with mirror 8KB)
-        // Mirrors of $2000-2007 (repeats every 8 bytes) $2008-$3FFF
-        printf("PPU: read requested for 0x%04x.\n", address);
+        _value = ppu_read_byte(address);
     } else if (address >= 0x4000 && address <= 0x401F) {
         // APU (32 bytes)
-        printf("APU: read requested for 0x%04x.\n", address);
+        _value = apu_read_byte(address);
     } else if (address >= 0x8000 && address <= 0xFFFF) {
         // ROM (32KB)
         _value = _bus_rom.prg_rom[address - 0x8000];
@@ -162,8 +159,10 @@ void cpu_power_up() {
     // TODO: This value should be taken from $FFFD (reset handler)
     WRITE_PC(0x8000);
 
-    // RAM power up
+    // Subsystem initialize
     ram_initialize();
+    ppu_initialize();
+    apu_initialize();
 
     // Frame IRQ enabled.
     cpu_bus_write(0x4017, 0x00);
@@ -186,8 +185,43 @@ void cpu_power_up() {
  * Resets the CPU states.
  */
 void cpu_reset() {
-
     printf("CPU: RESET NOT IMPLEMENTED!\n");
+}
+
+/**
+ * Stops execution.
+ */
+void cpu_stop() {
+    printf("CPU: Stopping execution!\n");
+    running = false;
+}
+
+/**
+ * Process a single instruction.
+ */
+void cpu_process_instruction(CpuInstruction operation) {
+
+    unsigned char parameters[2];
+    parameters[0] = _bus_rom.prg_rom[PC + 0x01];
+    parameters[1] = _bus_rom.prg_rom[PC + 0x02];
+
+    // Execute the instruction
+    operation.op(parameters);
+
+    // Debug
+    switch (operation.mem_mode) {
+        case MEM_A_IMPLIED:
+            printf("CPU: [+] Executed: %s\n", operation.name);
+        break;
+        default:
+            fprintf(stderr,
+                    "CPU ERROR: Memory addressing mode (%d) not implemented.",
+                    operation.mem_mode);
+        break;
+    }
+
+    PC += (operation.param_c + 1);
+    cpu_cycle += operation.cycles;
 
 }
 
@@ -197,7 +231,6 @@ void cpu_reset() {
 bool cpu_process_rom(NESRom rom) {
 
     _bus_rom = rom;
-
     cpu_power_up();
 
     printf("CPU: Reading %dKB (%d bytes) of PRG data.\n",
@@ -215,17 +248,7 @@ bool cpu_process_rom(NESRom rom) {
             return false;
         }
 
-        // Execute the instruction
-        unsigned char parameters[2];
-        parameters[0] = _bus_rom.prg_rom[PC + 0x01];
-        parameters[1] = _bus_rom.prg_rom[PC + 0x02];
-
-        // Test
-        operation.op(parameters);
-        printf("CPU: executed %s\n", operation.name);
-
-        PC += (operation.param_c + 1);
-        cpu_cycle += operation.cycles;
+        cpu_process_instruction(operation);
     }
 
     return true;

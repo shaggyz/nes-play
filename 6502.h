@@ -128,4 +128,9 @@ void cpu_reset();
  */
 bool cpu_process_rom(NESRom rom);
 
+/**
+ * Stops the CPU execution.
+ */
+void cpu_stop();
+
 #endif /* H_6502_H_ */

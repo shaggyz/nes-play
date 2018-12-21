@@ -58,11 +58,11 @@ void debug_rom(NESRom rom) {
 
     printf("\nPRG data debug: \n");
     printf("---------------------------------------------------------------------------\n");
-    debug_byte_stream(rom.prg_rom, PRG_ROM_BLOCK_SIZE, 10, 0);
+    debug_byte_stream(rom.prg_rom, PRG_ROM_BLOCK_SIZE, DEBUG_PRG_BANKS, 0);
 
     printf("\nCHR data debug: \n");
     printf("---------------------------------------------------------------------------\n");
-    debug_byte_stream(rom.chr_rom, CHR_ROM_BLOCK_SIZE, 10, 0);
+    debug_byte_stream(rom.chr_rom, CHR_ROM_BLOCK_SIZE, DEBUG_PRG_BANKS, 0);
 
 }
 

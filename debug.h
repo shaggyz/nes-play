@@ -11,7 +11,7 @@
 #include "romreader.h"
 
 // How many 16-byte banks dump to stdout.
-#define DEBUG_PRG_BANKS 10
+#define DEBUG_PRG_BANKS 20
 
 /*
  * Debugs a ROM to stdout

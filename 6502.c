@@ -43,6 +43,12 @@ void _clear_flag(unsigned char flag) {
     P_FLAGS &= ~(1 << flag);
 }
 
+// -----------
+// --- I/O ---
+// -----------
+
+NESRom _loaded_rom;
+
 // --------------------
 // --- CPU OP Codes ---
 // --------------------
@@ -70,6 +76,73 @@ void cpu_map_instructions() {
 
 }
 
+/**
+ * Writes to data bus: IO device, APU, RAM, etc.
+ */
+bool cpu_bus_write(unsigned short address, unsigned char byte) {
+
+    if (address >= 0x0000 && address <= 0x1fff) {
+        // RAM (2KB, with mirror 8KB)
+        // $0000-$07FF: 2K CPU RAM
+        // MIRROR 1: $0800-$0FFF
+        // MIRROR 1: $1000-$17FF
+        // MIRROR 1: $1800-$1FFF
+        // With mirroring: $0000-$1FFF (8KB in total, 8191 bytes)
+        printf("RAM: Write requested at 0x%04x with 0x%02x.\n", address, byte);
+    } else if (address >= 0x2000 && address <= 0x3FFF) {
+        // PPU (8 bytes, with mirror 8KB)
+        // Mirrors of $2000-2007 (repeats every 8 bytes) $2008-$3FFF
+        printf("PPU: write requested at 0x%04x with 0x%02x.\n", address, byte);
+    } else if (address >= 0x4000 && address <= 0x401F) {
+        // APU (32 bytes)
+        printf("APU: write requested at 0x%04x with 0x%02x.\n", address, byte);
+    } else if (address >= 0x8000 && address <= 0xFFFF) {
+        // ROM (32KB)
+        fprintf(stderr, "IO: ERROR: Trying to write 0x%02x to a ROM address: 0x%04x.\n");
+        return false;
+    } else {
+        // Unimplemented memory region
+        fprintf(stderr, "IO: ERROR: Missing write handler for address: 0x%04x. Trying to write: 0x%02x.\n");
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Reads from data bus.
+ */
+unsigned char cpu_bus_read(unsigned short address) {
+
+    unsigned char _value = 0x00;
+
+    if (address >= 0x0000 && address <= 0x1fff) {
+        // RAM (2KB, with mirror 8KB)
+        // $0000-$07FF: 2K CPU RAM
+        // MIRROR 1: $0800-$0FFF
+        // MIRROR 1: $1000-$17FF
+        // MIRROR 1: $1800-$1FFF
+        // With mirroring: $0000-$1FFF (8KB in total, 8191 bytes)
+        printf("RAM: read requested for 0x%04x.\n", address);
+    } else if (address >= 0x2000 && address <= 0x3FFF) {
+        // PPU (8 bytes, with mirror 8KB)
+        // Mirrors of $2000-2007 (repeats every 8 bytes) $2008-$3FFF
+        printf("PPU: read requested for 0x%04x.\n", address);
+    } else if (address >= 0x4000 && address <= 0x401F) {
+        // APU (32 bytes)
+        printf("APU: read requested for 0x%04x.\n", address);
+    } else if (address >= 0x8000 && address <= 0xFFFF) {
+        // ROM (32KB)
+        _value = _loaded_rom.prg_rom[address - 0x8000];
+        printf("ROM: read 0x%02x from ROM address: 0x%04x.\n", _value, address);
+    } else {
+        // Unimplemented memory region
+        fprintf(stderr, "IO: Missing read handler for address: 0x%04x.\n", address);
+    }
+
+    return _value;
+}
+
 // -----------------
 // --- CPU Logic ---
 // -----------------
@@ -79,7 +152,8 @@ void cpu_map_instructions() {
  */
 void cpu_power_up() {
 
-    printf("CPU: Start up!\n");
+    printf("CPU: Execution!\n");
+    printf("---------------------------------------------------------------------------\n");
     // CPU Flags: NOEBDIZC
     //            00110100
     _set_flag(PF_INTERRUPT_DISABLE);
@@ -91,6 +165,19 @@ void cpu_power_up() {
     WRITE_Y(0x00);
 
     WRITE_PS(0xfd);
+    // TODO: This is probably wrong.
+    // TODO: This value should be taken from $FFFD (reset handler)
+    WRITE_PC(0x8000);
+
+    // Frame IRQ enabled.
+    cpu_bus_write(0x4017, 0x00);
+    // all sound channels disabled
+    cpu_bus_write(0x4015, 0x00);
+
+    // Disable APU
+    for(unsigned short address = 0x4000; address <= 0x400F; address ++) {
+        cpu_bus_write(address, 0x00);
+    }
 
     printf("CPU: Preparing supported instructions.\n");
     cpu_map_instructions();
@@ -113,27 +200,29 @@ void cpu_reset() {
  */
 bool cpu_process_rom(NESRom rom) {
 
+    _loaded_rom = rom;
+
     cpu_power_up();
 
     printf("CPU: Reading %dKB (%d bytes) of PRG data.\n",
-            rom.header.prg_rom_size / 1024,
-            rom.header.prg_rom_size);
+            _loaded_rom.header.prg_rom_size / 1024,
+            _loaded_rom.header.prg_rom_size);
 
     while (running) {
 
-        unsigned char op_code = rom.prg_rom[PC];
+        unsigned char op_code = cpu_bus_read(PC);
         CpuInstruction operation = operations[op_code];
 
         // Check if the instruction is registered.
         if (operation.name[0] == '\0') {
-            printf("CPU ERROR: The instruction 0x%02x (%d) is not implemented.", op_code, op_code);
+            fprintf(stderr, "CPU ERROR: The instruction 0x%02x (%d) is not implemented.", op_code, op_code);
             return false;
         }
 
         // Execute the instruction
         unsigned char parameters[2];
-        parameters[0] = rom.prg_rom[PC + 0x01];
-        parameters[1] = rom.prg_rom[PC + 0x02];
+        parameters[0] = _loaded_rom.prg_rom[PC + 0x01];
+        parameters[1] = _loaded_rom.prg_rom[PC + 0x02];
 
         // Test
         operation.op(parameters);

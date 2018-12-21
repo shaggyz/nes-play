@@ -55,9 +55,52 @@ NESRom _bus_rom;
 
 CpuInstruction operations[256];
 
-// SEI
+/**
+ * Translates the memory address to access in function of the memory addressing mode.
+ */
+unsigned short cpu_map_memory_address(unsigned char params[2], char mem_a) {
+    unsigned short address = 0x0000;
+
+    switch (mem_a) {
+        case MEM_A_IMMEDIATE:
+
+        break;
+        default:
+            fprintf(stderr, "CPU: ERROR: LBA cannot handle the addressing mode: %d", mem_a);
+        break;
+    }
+
+    return address;
+}
+
+// CLD: $D8 (CLear Decimal)
+void OP_CLD(unsigned char params[2]) {
+    _clear_flag(PF_DECIMAL_MODE);
+}
+// CLC: $18 (CLear Carry Flag)
+void OP_CLC(unsigned char params[2]) {
+    _clear_flag(PF_CARRY);
+}
+// CLV: $B8 (CLear oVerflow)
+void OP_CLV(unsigned char params[2]) {
+    _clear_flag(PF_OVERFLOW);
+}
+// SEI: $78 (SEt Interrupt)
 void OP_SEI(unsigned char params[2]) {
     _set_flag(PF_INTERRUPT_DISABLE);
+}
+// SEC: (SEt Carry) $38
+void OP_SEC(unsigned char params[2]) {
+    _set_flag(PF_CARRY);
+}
+// SED: (SEt Decimal) $F8
+void OP_SED(unsigned char params[2]) {
+    _set_flag(PF_DECIMAL_MODE);
+}
+// LDA: $A9 (LoaD Accumulator)
+void OP_LDA(unsigned char params[2]) {
+    /*unsigned short address = cpu_map_memory_address(params, mem_a);
+    WRITE_A(cpu_bus_read(address));*/
 }
 
 /**
@@ -65,14 +108,75 @@ void OP_SEI(unsigned char params[2]) {
  */
 void cpu_map_instructions() {
 
+	// CLD: $D8 (CLear Decimal)
+	CpuInstruction CLD;
+	CLD.opcode = 0xd8;
+	CLD.cycles = 0x02;
+	CLD.param_c = 0x00;
+	CLD.mem_mode = MEM_A_IMPLIED;
+    strcpy(CLD.name, "CLD");
+    CLD.op = OP_CLD;
+
+    // CLC: $18 (CLear Carry Flag)
+    CpuInstruction CLC;
+    CLC.opcode = 0x18;
+    CLC.cycles = 0x02;
+    CLC.param_c = 0x00;
+    CLC.mem_mode = MEM_A_IMPLIED;
+    strcpy(CLC.name, "CLC");
+    CLC.op = OP_CLC;
+
+    // CLV: $B8 (CLear oVerflow)
+    CpuInstruction CLV;
+    CLV.opcode = 0xb8;
+    CLV.cycles = 0x02;
+    CLV.param_c = 0x00;
+    CLV.mem_mode = MEM_A_IMPLIED;
+    strcpy(CLV.name, "CLV");
+    CLV.op = OP_CLV;
+
+    // SEI: $78 (SEt Interrupt)
     CpuInstruction SEI;
     SEI.opcode = 0x78;
-    SEI.cycles = 0x01;
+    SEI.cycles = 0x02;
     SEI.param_c = 0x00;
     SEI.mem_mode = MEM_A_IMPLIED;
-	strcpy(SEI.name, "SEI");
-	SEI.op = OP_SEI;
-	operations[SEI.opcode] = SEI;
+    strcpy(SEI.name, "SEI");
+    SEI.op = OP_SEI;
+
+    // SEC: $38 (SEt Carry)
+    CpuInstruction SEC;
+    SEC.opcode = 0x38;
+    SEC.cycles = 0x02;
+    SEC.param_c = 0x00;
+    SEC.mem_mode = MEM_A_IMPLIED;
+    strcpy(SEC.name, "SEC");
+    SEC.op = OP_SEC;
+
+    // SED: $F8 (SEt Decimal)
+    CpuInstruction SED;
+    SED.opcode = 0xf8;
+    SED.cycles = 0x02;
+    SED.param_c = 0x00;
+    SED.mem_mode = MEM_A_IMPLIED;
+    strcpy(SED.name, "SED");
+    SED.op = OP_SED;
+
+    // LDA: $A9 (LoaD Accumulator: Immediate)
+    CpuInstruction LDA;
+    LDA.opcode = 0xa9;
+    LDA.cycles = 0x02;
+    LDA.param_c = 0x01;
+    LDA.mem_mode = MEM_A_IMMEDIATE;
+    strcpy(LDA.name, "LDA");
+    LDA.op = OP_LDA;
+
+    operations[CLD.opcode] = CLD;
+    operations[CLC.opcode] = CLC;
+    operations[CLV.opcode] = CLV;
+    operations[SEI.opcode] = SEI;
+    operations[SEC.opcode] = SEC;
+    operations[SED.opcode] = SED;
 
 }
 

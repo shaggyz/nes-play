@@ -47,7 +47,7 @@ typedef struct CPU_INSTRUCTION {
 
 // Expecting 1 byte as parameter, which can be an immediate value or a relative memory address.
 // 3 CPU Cycles. Example: ORA #$B2 (immediate constant value B2) or ORA $DF (relative memory address DF)
-#define MEM_A_INMEDIATE 0x01
+#define MEM_A_IMMEDIATE 0x01
 
 // Absolute addressing, expects a 16 bit little-endian WORD with the memory address. 5 CPU Cycles.
 // Example: JMP $4032 (in little-endian: 4C 32 40)

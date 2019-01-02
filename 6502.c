@@ -171,6 +171,7 @@ void cpu_map_instructions() {
     strcpy(LDA.name, "LDA");
     LDA.op = OP_LDA;
 
+    // Instructions register.
     operations[CLD.opcode] = CLD;
     operations[CLC.opcode] = CLC;
     operations[CLV.opcode] = CLV;

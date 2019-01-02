@@ -119,3 +119,6 @@ CHR data debug:
 - Memory addressing modes: http://www.emulator101.com/6502-addressing-modes.html
 - Memory map: https://en.wikibooks.org/wiki/NES_Programming#NES_2A03_CPU_memory_map
 - CPU Power up: https://wiki.nesdev.com/w/index.php/CPU_power_up_state
+- CPU Freq. thread on Reddit: https://www.reddit.com/r/EmuDev/comments/8cuvff/cpu_frequencycycles/
+
+

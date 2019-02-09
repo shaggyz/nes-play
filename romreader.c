@@ -3,7 +3,6 @@
  */
 
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include "romreader.h"
 
@@ -168,23 +167,5 @@ NESRom load_rom(char* rom_path) {
     }
 
     return rom;
-
-}
-
-/**
- * Creates a binary string representation of a byte.
- **/
-char* hex_to_bin(unsigned char byte) {
-
-    char* ret = malloc(9);
-    unsigned char bit, index = 0;
-
-    for (bit = 1 << 7; bit > 0; bit = bit / 2) {
-        ret[index] = (byte & bit) ? '1' : '0';
-        index++;
-    }
-
-    ret[8] = '\0';
-    return ret;
 
 }

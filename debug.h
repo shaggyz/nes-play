@@ -38,4 +38,9 @@ void debug_flags_10(NESHeader header);
  */
 void debug_byte_stream(unsigned char* stream, size_t block_size, int amount, size_t offset);
 
+/*
+ * Creates a binary string representation of a byte.
+ */
+char* hex_to_bin(unsigned char byte);
+
 #endif /* DEBUG_H_ */

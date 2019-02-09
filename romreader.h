@@ -118,9 +118,4 @@ NESRom parse_rom(FILE* rom_file);
  */
 NESHeader parse_header(unsigned char* raw_header);
 
-/*
- * Creates a binary string representation of a byte.
- */
-char* hex_to_bin(unsigned char byte);
-
 #endif /* ROMREADER_H_ */

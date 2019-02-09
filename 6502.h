@@ -8,6 +8,42 @@
 #include "6502.h"
 #include "romreader.h"
 
+// ---------------------
+// --- CPU Internals ---
+// ---------------------
+
+// CPU cycle counter. The integer limit is desired.
+unsigned int cpu_cycle = 0x00;
+
+// Simulation control.
+bool running = false;
+
+// CPU registers
+unsigned char A;
+unsigned char X;
+unsigned char Y;
+
+// Program counter
+unsigned short PC = 0x00;
+
+// Stack pointer
+unsigned short SP = 0x00;
+
+// Processor status flags
+unsigned char P_FLAGS = 0x00;
+
+bool _read_flag(unsigned char flag) {
+    return P_FLAGS & (1 << flag);
+}
+void _set_flag(unsigned char flag) {
+    P_FLAGS |= (1 << flag);
+}
+void _clear_flag(unsigned char flag) {
+    P_FLAGS &= ~(1 << flag);
+}
+
+NESRom _bus_rom;
+
 /**
  * Defines a CPU instruction struct.
  */
@@ -103,13 +139,12 @@ typedef struct CPU_INSTRUCTION {
 #define READ_Y(v) (return (unsigned char)Y)
 
 #define READ_PC() (return PC)
-#define READ_PS() (return PS)
+#define READ_SP() (return SP)
 
 #define WRITE_PC(v) (PC=v)
-#define WRITE_PS(v) (PS=v)
+#define WRITE_SP(v) (SP=v)
 
-// OpCodes
-#define SEI_OPCODE = 0x78
+// CPU Interface
 
 /**
  * Power up the CPU. Sets the default register values.

@@ -35,6 +35,44 @@ Yo will need a NES rom called `super_mario_bros.nes` in `./roms` dir. ;-)
 
 ## Evolution
 
+### Started instruction set execution
+
+Added debug for CPU instructions. Also, every bus message is displayed (RAM, PPU, APU, ROM, etc.).
+
+```
+CPU: Execution!
+---------------------------------------------------------------------------
+RAM: Initialized 2048 bytes (2KB).
+PPU: Initialized.
+APU: Initialized.
+APU: Write at 0x4017 with 0x00.
+APU: Write at 0x4015 with 0x00.
+APU: Write at 0x4000 with 0x00.
+APU: Write at 0x4001 with 0x00.
+APU: Write at 0x4002 with 0x00.
+APU: Write at 0x4003 with 0x00.
+APU: Write at 0x4004 with 0x00.
+APU: Write at 0x4005 with 0x00.
+APU: Write at 0x4006 with 0x00.
+APU: Write at 0x4007 with 0x00.
+APU: Write at 0x4008 with 0x00.
+APU: Write at 0x4009 with 0x00.
+APU: Write at 0x400a with 0x00.
+APU: Write at 0x400b with 0x00.
+APU: Write at 0x400c with 0x00.
+APU: Write at 0x400d with 0x00.
+APU: Write at 0x400e with 0x00.
+APU: Write at 0x400f with 0x00.
+CPU: Preparing supported instructions.
+CPU: Reading 32KB (32768 bytes) of PRG data.
+ROM: read 0x78 from ROM address: 0x8000.
+CPU: [+] Executed: SEI
+ROM: read 0xd8 from ROM address: 0x8001.
+CPU: [+] Executed: CLD
+ROM: read 0xa9 from ROM address: 0x8002.
+CPU ERROR: The instruction 0xa9 (169) is not implemented.
+```
+
 ### ROM reader implemented
 
 With a very basic debugger, example command `./nesplay roms/super_mario_bros.nes`:

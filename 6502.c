@@ -13,42 +13,6 @@
 #include "ppu.h"
 #include "apu.h"
 
-// ---------------------
-// --- CPU Internals ---
-// ---------------------
-
-// CPU cycle counter. The integer limit is desired.
-unsigned int cpu_cycle = 0x00;
-
-// Simulation control.
-bool running = false;
-
-// CPU registers
-unsigned char A;
-unsigned char X;
-unsigned char Y;
-
-// Program counter
-unsigned short PC = 0x00;
-
-// Pointer stack
-unsigned short PS = 0x00;
-
-// Processor status flags
-unsigned char P_FLAGS = 0x00;
-
-bool _read_flag(unsigned char flag) {
-    return P_FLAGS & (1 << flag);
-}
-void _set_flag(unsigned char flag) {
-    P_FLAGS |= (1 << flag);
-}
-void _clear_flag(unsigned char flag) {
-    P_FLAGS &= ~(1 << flag);
-}
-
-NESRom _bus_rom;
-
 // --------------------
 // --- CPU OP Codes ---
 // --------------------
@@ -259,7 +223,7 @@ void cpu_power_up() {
     WRITE_X(0x00);
     WRITE_Y(0x00);
 
-    WRITE_PS(0xfd);
+    WRITE_SP(0xfd);
     // TODO: This is probably wrong.
     // TODO: This value should be taken from $FFFD (reset handler)
     WRITE_PC(0x8000);
@@ -349,7 +313,7 @@ bool cpu_process_rom(NESRom rom) {
 
         // Check if the instruction is registered.
         if (operation.name[0] == '\0') {
-            fprintf(stderr, "CPU ERROR: The instruction 0x%02x (%d) is not implemented.", op_code, op_code);
+            fprintf(stderr, "CPU ERROR: The instruction 0x%02x (%d) is not implemented.\n", op_code, op_code);
             return false;
         }
 
